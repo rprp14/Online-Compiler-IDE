@@ -1,0 +1,8 @@
+print("Welcome to Cloud IDE")
+# Python syntax starter
+def main():
+    name = "Student"
+    print(f"Hello, {name}")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud IDE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <section id="authView" class="view auth-screen">
+        <div class="auth-shell">
+            <div class="auth-copy">
+                <p class="eyebrow">Cloud Workspace</p>
+                <h1>Online Compiler upgraded into a browser IDE.</h1>
+                <p>Each user gets a private cloud workspace, tree explorer, version history, autosave, sharing, and a Docker-ready execution layer.</p>
+            </div>
+            <div class="auth-grid">
+                <form id="loginForm" class="auth-card">
+                    <h2>Login</h2>
+                    <input name="username" placeholder="Username" required>
+                    <input name="password" type="password" placeholder="Password" required>
+                    <p id="loginMessage" class="form-message"></p>
+                    <button type="submit" class="primary-btn">Login</button>
+                </form>
+                <form id="signupForm" class="auth-card">
+                    <h2>Register</h2>
+                    <input name="username" placeholder="Username" required>
+                    <input name="password" type="password" placeholder="Password" required>
+                    <input name="confirmPassword" type="password" placeholder="Confirm Password" required>
+                    <p id="signupMessage" class="form-message"></p>
+                    <button type="submit" class="primary-btn">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section id="ideView" class="view hidden">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">VS Code-Like Workspace</p>
+                <h2 id="workspaceTitle">Cloud IDE</h2>
+            </div>
+            <div class="topbar-actions">
+                <span id="storageBadge" class="pill">Storage</span>
+                <span id="dockerBadge" class="pill">Runtime</span>
+                <button id="themeToggleButton" class="secondary-btn" type="button">Dark Mode</button>
+                <button id="newFolderButton" class="secondary-btn" type="button">New Folder</button>
+                <button id="newFileButton" class="secondary-btn" type="button">New File</button>
+                <button id="logoutButton" class="secondary-btn" type="button">Logout</button>
+            </div>
+        </header>
+
+        <main class="ide-shell">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Explorer</strong>
+                        <button id="refreshTreeButton" class="ghost-btn" type="button">Refresh</button>
+                    </div>
+                    <div class="inline-form">
+                        <input id="searchInput" placeholder="Search files">
+                    </div>
+                    <div id="searchResults" class="stack"></div>
+                    <div id="treeRoot" class="tree-root"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Version History</strong>
+                    </div>
+                    <div id="versionsList" class="stack"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Sharing</strong>
+                    </div>
+                    <div class="share-form">
+                        <input id="shareUsername" placeholder="Username">
+                        <select id="sharePermission">
+                            <option value="read">Read</option>
+                            <option value="write">Write</option>
+                            <option value="both">Both</option>
+                        </select>
+                        <button id="shareButton" class="primary-btn" type="button">Share Selected</button>
+                    </div>
+                    <div id="shareList" class="stack"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Cloud Status</strong>
+                    </div>
+                    <div id="cloudStats" class="cloud-stats"></div>
+                    <div class="section-head cloud-subhead">
+                        <strong>Recent Cloud Files</strong>
+                    </div>
+                    <div id="recentFilesList" class="stack"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Cloud Links</strong>
+                    </div>
+                    <div class="link-actions">
+                        <button id="workspaceLinkButton" class="secondary-btn" type="button">Create Workspace Link</button>
+                        <button id="deployAppButton" class="primary-btn" type="button">Deploy HTML/JS App</button>
+                    </div>
+                    <div id="cloudLinkStatus" class="cloud-link-status muted">No link created yet.</div>
+                    <div id="cloudLinkList" class="stack"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="section-head">
+                        <strong>Cloud Sync</strong>
+                    </div>
+                    <div id="syncStatus" class="cloud-link-status muted">Synced state will appear here.</div>
+                </div>
+            </aside>
+
+            <section class="editor-area">
+                <div class="editor-topline">
+                    <div>
+                        <strong id="currentFileLabel">No file selected</strong>
+                        <p id="autosaveStatus" class="muted">Autosave idle</p>
+                    </div>
+                    <div class="editor-actions">
+                        <select id="languageSelect">
+                            <option value="python">Python</option>
+                            <option value="c">C</option>
+                            <option value="cpp">C++</option>
+                            <option value="java">Java</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="html">HTML</option>
+                            <option value="css">CSS</option>
+                            <option value="json">JSON</option>
+                            <option value="markdown">Markdown</option>
+                            <option value="text">Text</option>
+                        </select>
+                        <button id="saveButton" class="secondary-btn" type="button">Save</button>
+                        <button id="runButton" class="primary-btn" type="button">Run</button>
+                    </div>
+                </div>
+
+                <div id="breadcrumbBar" class="breadcrumb-bar muted">Root Workspace</div>
+
+                <div class="compiler-workbench">
+                    <section class="panel syntax-panel">
+                        <div class="section-head">
+                            <div>
+                                <strong>Language Syntax</strong>
+                                <p class="muted">Editable starter snippet for the selected language</p>
+                            </div>
+                            <span id="syntaxLanguageBadge" class="pill">Python</span>
+                        </div>
+                        <textarea id="syntaxHelperInput" class="terminal-input syntax-helper" placeholder="Language syntax will appear here"></textarea>
+                        <div class="syntax-toolbar">
+                            <button id="resetSyntaxButton" class="secondary-btn" type="button">Reset</button>
+                            <button id="loadSyntaxButton" class="primary-btn" type="button">Load into Editor</button>
+                        </div>
+                    </section>
+
+                    <div class="editor-column">
+                        <div class="editor-pane">
+                            <textarea id="codeEditor"></textarea>
+                        </div>
+
+                        <div class="workspace-meta">
+                            <input id="fileNameInput" placeholder="File name">
+                            <select id="parentFolderSelect"></select>
+                            <button id="renameButton" class="secondary-btn" type="button">Rename / Move</button>
+                            <button id="deleteButton" class="danger-btn" type="button">Delete</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-grid">
+                    <section class="panel">
+                        <div class="section-head">
+                            <strong>Terminal</strong>
+                            <div id="executionMeta" class="run-meta muted">Ready</div>
+                        </div>
+                        <textarea id="stdinInput" class="terminal-input" placeholder="Program input"></textarea>
+                        <pre id="outputConsole" class="terminal-output">Login to open your workspace.</pre>
+                    </section>
+
+                    <section class="panel">
+                        <div class="section-head">
+                            <strong>Preview</strong>
+                        </div>
+                        <iframe id="previewFrame" title="HTML Preview"></iframe>
+                    </section>
+
+                    <section class="panel full-span">
+                        <div class="section-head">
+                            <strong>Activity</strong>
+                        </div>
+                        <div id="historyList" class="stack"></div>
+                        <div id="serverList" class="stack server-stack"></div>
+                    </section>
+                </div>
+            </section>
+        </main>
+        <div id="treeContextMenu" class="tree-context-menu hidden"></div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
